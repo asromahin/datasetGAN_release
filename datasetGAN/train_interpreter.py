@@ -569,6 +569,7 @@ def main(args
         for epoch in range(100):
             for X_batch, y_batch in train_loader:
                 X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+                print(X_batch.shape, y_batch.shape)
                 y_batch = y_batch.type(torch.long)
                 y_batch = y_batch.type(torch.long)
 
