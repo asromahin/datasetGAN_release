@@ -517,10 +517,10 @@ def main(args
 
     train_data = ReadDataset(args)
 
-    count_dict = get_label_stas(train_data)
+    #count_dict = get_label_stas(train_data)
 
     num_data = len(train_data.latent_all)
-    max_label = max([*count_dict])
+    max_label = args['number_class']#max([*count_dict])
     print(" *********************** max_label " + str(max_label) + " ***********************")
 
 
