@@ -558,6 +558,7 @@ def main(args
                 y_batch = y_batch.type(torch.long)
 
                 optimizer.zero_grad()
+                print(X_batch.shape)
                 y_pred = classifier(X_batch)
                 loss = criterion(y_pred, y_batch)
                 acc = multi_acc(y_pred, y_batch)
