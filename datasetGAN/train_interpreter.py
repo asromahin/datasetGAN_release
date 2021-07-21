@@ -430,6 +430,67 @@ def prepare_data(args, palette):
     return all_feature_maps_train, all_mask_train, num_data
 
 
+class ReadDataset(Dataset):
+    def __init__(self, args):
+        super(ReadDataset, self).__init__()
+        self.g_all, self.avg_latent, self.upsamplers = prepare_stylegan(args)
+        self.latent_all, self.im_list, self.mask_list = self.prepare_latent()
+
+    def prepare_latent(self):
+        latent_all = np.load(args['annotation_image_latent_path'])
+        latent_all = torch.from_numpy(latent_all).cuda()
+        latent_all = latent_all[:args['max_training']]
+        mask_list = []
+        im_list = []
+
+        for i in range(len(latent_all)):
+
+            if i >= args['max_training']:
+                break
+            name = 'image_mask%0d.npy' % i
+
+            im_frame = np.load(os.path.join(args['annotation_mask_path'], name))
+            mask = np.array(im_frame)
+            mask = cv2.resize(np.squeeze(mask), dsize=(args['dim'][1], args['dim'][0]), interpolation=cv2.INTER_NEAREST)
+
+            mask_list.append(mask)
+
+            im_name = os.path.join(args['annotation_mask_path'], 'image_%d.jpg' % i)
+            img = Image.open(im_name)
+            img = img.resize((args['dim'][1], args['dim'][0]))
+
+            im_list.append(np.array(img))
+
+        for i in range(len(mask_list)):  # clean up artifacts in the annotation, must do
+            for target in range(1, 50):
+                if (mask_list[i] == target).sum() < 30:
+                    mask_list[i][mask_list[i] == target] = 0
+
+        return latent_all, im_list, mask_list
+
+    def __getitem__(self, i):
+        gc.collect()
+
+        latent_input = self.latent_all[i].float()
+
+        img, feature_maps = latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0), dim=args['dim'][1],
+                                            return_upsampled_layers=True,
+                                            use_style_latents=args['annotation_data_from_w'])
+        if args['dim'][0] != args['dim'][1]:
+            # only for car
+            img = img[:, 64:448]
+            feature_maps = feature_maps[:, :, 64:448]
+        mask = self.mask_list[i]
+        feature_maps = feature_maps.permute(0, 2, 3, 1)
+
+        feature_maps = feature_maps.reshape(-1, args['dim'][2])
+        #new_mask = np.squeeze(mask)
+
+        mask = mask.reshape(-1)
+
+        return feature_maps, mask
+
+
 def main(args
          ):
 
@@ -443,15 +504,17 @@ def main(args
         from utils.data_util import cat_palette as palette
 
 
-    all_feature_maps_train_all, all_mask_train_all, num_data = prepare_data(args, palette)
+    # all_feature_maps_train_all, all_mask_train_all, num_data = prepare_data(args, palette)
+    #
+    #
+    # train_data = trainData(torch.FloatTensor(all_feature_maps_train_all),
+    #                        torch.FloatTensor(all_mask_train_all))
 
-
-    train_data = trainData(torch.FloatTensor(all_feature_maps_train_all),
-                           torch.FloatTensor(all_mask_train_all))
-
+    train_data = ReadDataset(args)
 
     count_dict = get_label_stas(train_data)
 
+    num_data = len(train_data.latent_all)
     max_label = max([*count_dict])
     print(" *********************** max_label " + str(max_label) + " ***********************")
 
