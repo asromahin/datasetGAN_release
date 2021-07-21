@@ -433,16 +433,18 @@ def prepare_data(args, palette):
 class ReadDataset(Dataset):
     def __init__(self, args):
         super(ReadDataset, self).__init__()
-        self.g_all, self.avg_latent, self.upsamplers = prepare_stylegan(args)
-        self.latent_all, self.im_list, self.mask_list = self.prepare_latent(args)
+        self.args = args
+        self.g_all, self.avg_latent, self.upsamplers = prepare_stylegan(self.args)
+        self.latent_all, self.im_list, self.mask_list = self.prepare_latent()
+
 
     def __len__(self):
         return len(self.latent_all)
 
-    def prepare_latent(self, args):
-        latent_all = np.load(args['annotation_image_latent_path'])
+    def prepare_latent(self):
+        latent_all = np.load(self.args['annotation_image_latent_path'])
         latent_all = torch.from_numpy(latent_all).cuda()
-        latent_all = latent_all[:args['max_training']]
+        latent_all = latent_all[:self.args['max_training']]
         mask_list = []
         im_list = []
 
@@ -452,15 +454,15 @@ class ReadDataset(Dataset):
                 break
             name = 'image_mask%0d.npy' % i
 
-            im_frame = np.load(os.path.join(args['annotation_mask_path'], name))
+            im_frame = np.load(os.path.join(self.args['annotation_mask_path'], name))
             mask = np.array(im_frame)
-            mask = cv2.resize(np.squeeze(mask), dsize=(args['dim'][1], args['dim'][0]), interpolation=cv2.INTER_NEAREST)
+            mask = cv2.resize(np.squeeze(mask), dsize=(self.args['dim'][1], self.args['dim'][0]), interpolation=cv2.INTER_NEAREST)
 
             mask_list.append(mask)
 
             im_name = os.path.join(args['annotation_mask_path'], 'image_%d.jpg' % i)
             img = Image.open(im_name)
-            img = img.resize((args['dim'][1], args['dim'][0]))
+            img = img.resize((self.args['dim'][1], self.args['dim'][0]))
 
             im_list.append(np.array(img))
 
@@ -476,17 +478,17 @@ class ReadDataset(Dataset):
 
         latent_input = self.latent_all[i].float()
 
-        img, feature_maps = latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0), dim=args['dim'][1],
+        img, feature_maps = latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0), dim=self.args['dim'][1],
                                             return_upsampled_layers=True,
-                                            use_style_latents=args['annotation_data_from_w'])
-        if args['dim'][0] != args['dim'][1]:
+                                            use_style_latents=self.args['annotation_data_from_w'])
+        if self.args['dim'][0] != self.args['dim'][1]:
             # only for car
             img = img[:, 64:448]
             feature_maps = feature_maps[:, :, 64:448]
         mask = self.mask_list[i]
         feature_maps = feature_maps.permute(0, 2, 3, 1)
 
-        feature_maps = feature_maps.reshape(-1, args['dim'][2])
+        feature_maps = feature_maps.reshape(-1, self.args['dim'][2])
         #new_mask = np.squeeze(mask)
 
         mask = mask.reshape(-1)
