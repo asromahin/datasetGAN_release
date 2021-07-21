@@ -37,6 +37,7 @@ import os
 device_ids = [0]
 from PIL import Image
 import gc
+from tqdm import tqdm
 
 import pickle
 from models.stylegan1 import G_mapping,Truncation,G_synthesis
@@ -459,11 +460,13 @@ class ReadDataset(Dataset):
 
         self.last_ind = -1
 
-        self.img, self.feature_maps = self.get_maps(0)
+        self.feature_maps, self.mask = self.get_maps(0)
 
     def get_maps(self, ind):
+
         if self.last_ind == ind:
             return self.img, self.feature_maps
+        print("GENERATE_NEW_WITH_IND_" + str(ind))
         latent_input = self.latent_all[ind].float()
         self.last_ind = ind
         img, feature_maps = latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0),
@@ -585,9 +588,10 @@ def main(args
         best_loss = 10000000
         stop_sign = 0
         for epoch in range(100):
-            for X_batch, y_batch in train_loader:
+            pbar = tqdm(train_loader)
+            for X_batch, y_batch in pbar:
                 X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-                print(X_batch.shape, y_batch.shape)
+                #print(X_batch.shape, y_batch.shape)
                 y_batch = y_batch.type(torch.long)
                 y_batch = y_batch.type(torch.long)
 
@@ -599,10 +603,13 @@ def main(args
 
                 loss.backward()
                 optimizer.step()
-
+                pbar.set_postfix({
+                    'acc': acc,
+                    'loss': loss.item(),
+                })
                 iteration += 1
                 if iteration % 1000 == 0:
-                    print('Epoch : ', str(epoch), 'iteration', iteration, 'loss', loss.item(), 'acc', acc)
+                    #print('Epoch : ', str(epoch), 'iteration', iteration, 'loss', loss.item(), 'acc', acc)
                     gc.collect()
 
 
