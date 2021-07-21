@@ -526,7 +526,7 @@ class ReadDataset(Dataset):
         cur_i_n = i%(self.args['dim'][1]*self.args['dim'][0])
         feature_maps, mask = self.get_maps(cur_i)
 
-        return torch.FloatTensor(feature_maps[cur_i_n].cpu().detach().numpy().astype(np.float16)), torch.FloatTensor((mask[cur_i_n].astype(np.float16),))
+        return torch.FloatTensor(feature_maps[cur_i_n].cpu().detach().numpy().astype(np.float16)), mask[cur_i_n].astype(np.float16)
 
 
 def main(args
