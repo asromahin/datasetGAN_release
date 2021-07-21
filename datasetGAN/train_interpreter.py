@@ -485,7 +485,8 @@ class ReadDataset(Dataset):
         #new_mask = np.squeeze(mask)
 
         mask = mask.reshape(-1)
-        return feature_maps, mask
+        feature_maps = torch.FloatTensor(feature_maps.cpu().detach().numpy().astype(np.float16))
+        return feature_maps, mask.astype(np.float16)
 
     def __len__(self):
         return self.args['dim'][1] * self.args['dim'][0] * len(self.latent_all)
@@ -529,7 +530,7 @@ class ReadDataset(Dataset):
         cur_i_n = i%(self.args['dim'][1]*self.args['dim'][0])
         self.feature_maps, self.mask = self.get_maps(cur_i)
 
-        return torch.FloatTensor(self.feature_maps[cur_i_n].cpu().detach().numpy().astype(np.float16)), self.mask[cur_i_n].astype(np.float16)
+        return self.feature_maps[cur_i_n], self.mask[cur_i_n]
 
 
 def main(args
