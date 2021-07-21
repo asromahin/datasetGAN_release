@@ -93,11 +93,11 @@ class pixel_classifier(nn.Module):
         #         nn.Linear(128, numpy_class),
         #         # nn.Sigmoid()
         #     )
-        self.l1 = nn.Linear(dim, 256)
+        self.l1 = nn.Linear(dim, 128)
         self.relu = nn.ReLU()
-        self.bn1 = nn.BatchNorm1d(num_features=256)
-        self.l2 = nn.Linear(256, 128)
-        self.bn2 = nn.BatchNorm1d(num_features=128)
+        #self.bn1 = nn.BatchNorm1d(num_features=256)
+        #self.l2 = nn.Linear(256, 128)
+        #self.bn2 = nn.BatchNorm1d(num_features=128)
         self.l3 = nn.Linear(128, numpy_class)
 
 
@@ -138,8 +138,8 @@ class pixel_classifier(nn.Module):
         x = self.l1(x)
         x = self.relu(x)
         #x = self.bn1(x)
-        x = self.l2(x)
-        x = self.relu(x)
+        #x = self.l2(x)
+        #x = self.relu(x)
         #x = self.bn2(x)
         x = self.l3(x)
         return x
