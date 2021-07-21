@@ -493,7 +493,7 @@ class ReadDataset(Dataset):
 
         mask = mask.reshape(-1)
 
-        return torch.FloatTensor(feature_maps.astype('float32')), torch.FloatTensor(mask.astype('float32'))
+        return feature_maps, torch.FloatTensor(mask.astype('float32'))
 
 
 def main(args
