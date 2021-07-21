@@ -436,6 +436,9 @@ class ReadDataset(Dataset):
         self.g_all, self.avg_latent, self.upsamplers = prepare_stylegan(args)
         self.latent_all, self.im_list, self.mask_list = self.prepare_latent(args)
 
+    def __len__(self):
+        return len(self.latent_all)
+
     def prepare_latent(self, args):
         latent_all = np.load(args['annotation_image_latent_path'])
         latent_all = torch.from_numpy(latent_all).cuda()
