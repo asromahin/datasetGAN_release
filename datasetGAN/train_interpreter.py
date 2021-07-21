@@ -136,10 +136,10 @@ class pixel_classifier(nn.Module):
     def forward(self, x):
         x = self.l1(x)
         x = self.relu(x)
-        x = self.bn1(x)
+        #x = self.bn1(x)
         x = self.l2(x)
         x = self.relu(x)
-        x = self.bn2(x)
+        #x = self.bn2(x)
         x = self.l3(x)
         return x
 
