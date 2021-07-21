@@ -68,6 +68,8 @@ class trainData(Dataset):
 class pixel_classifier(nn.Module):
     def __init__(self, numpy_class, dim):
         super(pixel_classifier, self).__init__()
+        print('classifier_dim=',dim)
+        print('numpy_class=', numpy_class)
         if numpy_class < 32:
             self.layers = nn.Sequential(
                 nn.Linear(dim, 128),
