@@ -125,6 +125,7 @@ class pixel_classifier(nn.Module):
 
 
     def forward(self, x):
+        print(x.shape)
         return self.layers(x)
 
 def prepare_stylegan(args):
