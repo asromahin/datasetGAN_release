@@ -450,7 +450,7 @@ class ReadDataset(Dataset):
 
         for i in range(len(latent_all)):
 
-            if i >= args['max_training']:
+            if i >= self.args['max_training']:
                 break
             name = 'image_mask%0d.npy' % i
 
@@ -460,7 +460,7 @@ class ReadDataset(Dataset):
 
             mask_list.append(mask)
 
-            im_name = os.path.join(args['annotation_mask_path'], 'image_%d.jpg' % i)
+            im_name = os.path.join(self.args['annotation_mask_path'], 'image_%d.jpg' % i)
             img = Image.open(im_name)
             img = img.resize((self.args['dim'][1], self.args['dim'][0]))
 
