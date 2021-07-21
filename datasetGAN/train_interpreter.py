@@ -70,28 +70,34 @@ class pixel_classifier(nn.Module):
         super(pixel_classifier, self).__init__()
         print('classifier_dim=',dim)
         print('numpy_class=', numpy_class)
-        if numpy_class < 32:
-            self.layers = nn.Sequential(
-                nn.Linear(dim, 128),
-                nn.ReLU(),
-                nn.BatchNorm1d(num_features=128),
-                nn.Linear(128, 32),
-                nn.ReLU(),
-                nn.BatchNorm1d(num_features=32),
-                nn.Linear(32, numpy_class),
-                # nn.Sigmoid()
-            )
-        else:
-            self.layers = nn.Sequential(
-                nn.Linear(dim, 256),
-                nn.ReLU(),
-                nn.BatchNorm1d(num_features=256),
-                nn.Linear(256, 128),
-                nn.ReLU(),
-                nn.BatchNorm1d(num_features=128),
-                nn.Linear(128, numpy_class),
-                # nn.Sigmoid()
-            )
+        # if numpy_class < 32:
+        #     self.layers = nn.Sequential(
+        #         nn.Linear(dim, 128),
+        #         nn.ReLU(),
+        #         nn.BatchNorm1d(num_features=128),
+        #         nn.Linear(128, 32),
+        #         nn.ReLU(),
+        #         nn.BatchNorm1d(num_features=32),
+        #         nn.Linear(32, numpy_class),
+        #         # nn.Sigmoid()
+        #     )
+        # else:
+        #     self.layers = nn.Sequential(
+        #         nn.Linear(dim, 256),
+        #         nn.ReLU(),
+        #         nn.BatchNorm1d(num_features=256),
+        #         nn.Linear(256, 128),
+        #         nn.ReLU(),
+        #         nn.BatchNorm1d(num_features=128),
+        #         nn.Linear(128, numpy_class),
+        #         # nn.Sigmoid()
+        #     )
+        self.l1 = nn.Linear(dim, 256)
+        self.relu = nn.ReLU()
+        self.bn1 = nn.BatchNorm1d(num_features=256)
+        self.l2 = nn.Linear(256, 128)
+        self.bn2 = nn.BatchNorm1d(num_features=128)
+        self.l3 = nn.Linear(128, numpy_class)
 
 
     def init_weights(self, init_type='normal', gain=0.02):
@@ -124,9 +130,16 @@ class pixel_classifier(nn.Module):
 
 
 
+    # def forward(self, x):
+    #     print(x.shape)
+    #     return self.layers(x)
     def forward(self, x):
-        print(x.shape)
-        return self.layers(x)
+        x = self.bn1(self.relu(self.l1(x)))
+        x = self.bn2(self.relu(self.l2(x)))
+        x = self.l3(x)
+        return x
+
+
 
 def prepare_stylegan(args):
 
