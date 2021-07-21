@@ -448,10 +448,23 @@ class ReadDataset(Dataset):
             return self.img, self.feature_maps
         latent_input = self.latent_all[ind].float()
         self.last_ind = ind
-        return latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0),
+        img, feature_maps = latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0),
                                                       dim=self.args['dim'][1],
                                                       return_upsampled_layers=True,
                                                       use_style_latents=self.args['annotation_data_from_w'])
+
+        if self.args['dim'][0] != self.args['dim'][1]:
+            # only for car
+            #img = img[:, 64:448]
+            feature_maps = feature_maps[:, :, 64:448]
+        mask = self.mask_list[ind]
+        feature_maps = feature_maps.permute(0, 2, 3, 1)
+
+        feature_maps = feature_maps.reshape(-1, self.args['dim'][2])
+        #new_mask = np.squeeze(mask)
+
+        mask = mask.reshape(-1)
+        return feature_maps, mask
 
     def __len__(self):
         return self.args['dim'][1] * self.args['dim'][0] * len(self.latent_all)
@@ -491,20 +504,11 @@ class ReadDataset(Dataset):
     def __getitem__(self, i):
         gc.collect()
 
-        img, feature_maps = self.get_maps(i//(self.args['dim'][1]*self.args['dim'][0]))
-        if self.args['dim'][0] != self.args['dim'][1]:
-            # only for car
-            img = img[:, 64:448]
-            feature_maps = feature_maps[:, :, 64:448]
-        mask = self.mask_list[i]
-        feature_maps = feature_maps.permute(0, 2, 3, 1)
+        cur_i = i//(self.args['dim'][1]*self.args['dim'][0])
+        cur_i_n = i%(self.args['dim'][1]*self.args['dim'][0])
+        feature_maps, mask = self.get_maps(cur_i)
 
-        feature_maps = feature_maps.reshape(-1, self.args['dim'][2])
-        #new_mask = np.squeeze(mask)
-
-        mask = mask.reshape(-1)
-
-        return torch.FloatTensor(feature_maps.cpu().detach().numpy().astype(np.float16)), torch.FloatTensor(mask.astype(np.float16))
+        return torch.FloatTensor(feature_maps[cur_i_n].cpu().detach().numpy().astype(np.float16)), torch.FloatTensor(mask[cur_i_n].astype(np.float16))
 
 
 def main(args
