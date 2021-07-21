@@ -465,7 +465,7 @@ class ReadDataset(Dataset):
     def get_maps(self, ind):
 
         if self.last_ind == ind:
-            return self.img, self.feature_maps
+            return self.feature_maps, self.mask
         print("GENERATE_NEW_WITH_IND_" + str(ind))
         latent_input = self.latent_all[ind].float()
         self.last_ind = ind
@@ -527,9 +527,9 @@ class ReadDataset(Dataset):
 
         cur_i = i//(self.args['dim'][1]*self.args['dim'][0])
         cur_i_n = i%(self.args['dim'][1]*self.args['dim'][0])
-        feature_maps, mask = self.get_maps(cur_i)
+        self.feature_maps, self.mask = self.get_maps(cur_i)
 
-        return torch.FloatTensor(feature_maps[cur_i_n].cpu().detach().numpy().astype(np.float16)), mask[cur_i_n].astype(np.float16)
+        return torch.FloatTensor(self.feature_maps[cur_i_n].cpu().detach().numpy().astype(np.float16)), self.mask[cur_i_n].astype(np.float16)
 
 
 def main(args
