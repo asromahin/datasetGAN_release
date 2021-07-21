@@ -565,7 +565,7 @@ def main(args
 
     batch_size = args['batch_size']
 
-    train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=False)
 
     print(" *********************** Current dataloader length " +  str(len(train_loader)) + " ***********************")
 
