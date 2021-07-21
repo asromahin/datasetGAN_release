@@ -439,9 +439,22 @@ class ReadDataset(Dataset):
         self.g_all, self.avg_latent, self.upsamplers = prepare_stylegan(self.args)
         self.latent_all, self.im_list, self.mask_list = self.prepare_latent()
 
+        self.last_ind = -1
+
+        self.img, self.feature_maps = self.get_maps(0)
+
+    def get_maps(self, ind):
+        if self.last_ind == ind:
+            return self.img, self.feature_maps
+        latent_input = self.latent_all[ind].float()
+        self.last_ind = ind
+        return latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0),
+                                                      dim=self.args['dim'][1],
+                                                      return_upsampled_layers=True,
+                                                      use_style_latents=self.args['annotation_data_from_w'])
 
     def __len__(self):
-        return len(self.latent_all)
+        return self.args['dim'][1] * self.args['dim'][0] * len(self.latent_all)
 
     def prepare_latent(self):
         latent_all = np.load(self.args['annotation_image_latent_path'])
@@ -478,11 +491,7 @@ class ReadDataset(Dataset):
     def __getitem__(self, i):
         gc.collect()
 
-        latent_input = self.latent_all[i].float()
-
-        img, feature_maps = latent_to_image(self.g_all, self.upsamplers, latent_input.unsqueeze(0), dim=self.args['dim'][1],
-                                            return_upsampled_layers=True,
-                                            use_style_latents=self.args['annotation_data_from_w'])
+        img, feature_maps = self.get_maps(i//(self.args['dim'][1]*self.args['dim'][0]))
         if self.args['dim'][0] != self.args['dim'][1]:
             # only for car
             img = img[:, 64:448]
