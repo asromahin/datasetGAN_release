@@ -137,6 +137,7 @@ def get_label_stas(data_loader):
     count_dict = {}
     for i in range(data_loader.__len__()):
         x, y = data_loader.__getitem__(i)
+        print(y)
         if int(y.item()) not in count_dict:
             count_dict[int(y.item())] = 1
         else:
